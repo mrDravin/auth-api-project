@@ -19,6 +19,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->app->bind(
+            \App\Http\Services\Interfaces\RegisterServiceInterface::class,
+            \App\Http\Services\RegisterService::class
+        );
+
+        $this->app->bind(
+            \App\Http\Services\Interfaces\LoginServiceInterface::class,
+            \App\Http\Services\LoginService::class
+        );
     }
 }

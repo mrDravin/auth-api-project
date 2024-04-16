@@ -1,44 +1,37 @@
 <?php
-
 namespace App\Http\Controllers;
-use App\Models\User;
+
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
+use App\http\Services\LoginService;
+use App\Http\Services\RegisterService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        $user = User::create([
-            'name' => $request->input('name'),
-            'email' => $request->input('email'),
-            'password' => Hash::make($request->input('password')),
-        ]);
+    private $registerService;
+    private $loginService;
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+    public function __construct(RegisterService $registerService, LoginService $loginService)
+    {
+        $this->registerService = $registerService;
+        $this->loginService = $loginService;
+    }
+
+    public function register(RegisterRequest $request)
+    {
+        $user = $this->registerService->register($request);
 
         return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
+            'user' => $user,
         ]);
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $user = User::where('email', $request->input('email'))->first();
+        $response = $this->loginService->login($request);
 
-        if (!$user || !Hash::check($request->input('password'), $user->password)) {
-            return response()->json([
-                'message' => 'Invalid credentials',
-            ], 401);
-        }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-        ]);
+        return response()->json($response);
     }
 
     public function logout(Request $request)
